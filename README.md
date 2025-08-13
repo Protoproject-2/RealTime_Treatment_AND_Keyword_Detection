@@ -36,7 +36,6 @@
     ```
     
 3.  **openai-whiperを使うために**
-    openai-whisperをpip/importするにはローカル環境にffmpegっていうものをインストールする必要があるため、その方法を記述
     ```
     # windows
     winget install ffmpeg
