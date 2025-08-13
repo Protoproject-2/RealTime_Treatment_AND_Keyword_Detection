@@ -64,4 +64,9 @@
     * finallyブロック：マイクをOSに返すための処理。ただ将来的にはこうではなく合言葉検知が成功しても、バックグラウンドで検知を回し続けられるようにしたいなと思っている
 
 2.  **Detection.py**
-    * 
+    * self.model = whisper.load_model(model_size)：whisperライブラリの関数。指定されたモデルをPCのメモリに一度だけロードする（main.pyを複数動かしても最初の一回以降はロードされた状態で始まるから安心して）
+        **detectメソッド**
+        * result = self.model.transcrobe(audio_data, language="ja")：whisperの最も重要なモデル。音声データ（audio_data）を受け取り、文字に起こす。
+        * recognized_text = result["text"]：transcribeが返した辞書データからtextキーを指定して、文字お越しされた文字列本体を取り出している。
+        * normalized_text = self.converter.do(recognized_text)：認識された文字列をすべて平仮名に変換する（ここ正味もしかしたらwhisperのみでできるのではないだろうかと思っている）
+        
