@@ -29,19 +29,36 @@
     .\.venv\Scripts\Activate.ps1
     # 終わらせたいときは
     deactivate
-    
-    
+
     # Mac / Linux
     python3 -m venv .venv
     source .venv/bin/activate
     ```
+    
+3.  **openai-whiperを使うために**
+    openai-whisperをpip/importするにはローカル環境にffmpegっていうものをインストールする必要があるため、その方法を記述
+    ```
+    # windows
+    winget install ffmpeg
+    # 途中規約同意を求められるから**Y**でenter
 
-3.  **必要なライブラリをインストール**
-    ```bash
-    pip install -r requirements.txt
+    # macOS
+    # Homebrewをインストールする
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # ffmpegをインストール
+    brew install ffmpeg
     ```
 
-4.  **プログラムの実行**
+4.  **必要なライブラリをインストール**
+    ```bash
+    pip install -r requirements.txt
+    # ↑うまくいかないので下に必要なライブラリを指定するよん
+    pip install pykakasi
+    pip install openai-whisper
+
+    ```
+
+5.  **プログラムの実行**
     ```bash
     python main.py
     ```
