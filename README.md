@@ -55,6 +55,7 @@
     # ↑うまくいかないので下に必要なライブラリを指定するよん
     pip install pykakasi
     pip install openai-whisper
+    pip install pyaudio
 
     ```
 
