@@ -39,7 +39,7 @@
     ```
     # windows
     winget install ffmpeg
-    # 途中規約同意を求められるから**Y**でenter
+    # 途中規約同意を求められるからYでenter
 
     # macOS
     # Homebrewをインストールする
