@@ -26,11 +26,14 @@
     ```bash
     # Windows
     python -m venv venv
-    .\venv\Scripts\Activate.ps1
+    .\.venv\Scripts\Activate.ps1
+    # 終わらせたいときは
+    deactivate
+    
     
     # Mac / Linux
-    python3 -m venv venv
-    source venv/bin/activate
+    python3 -m venv .venv
+    source .venv/bin/activate
     ```
 
 3.  **必要なライブラリをインストール**
@@ -49,7 +52,7 @@
 いくつかの設定は `main.py` の中で直接変更できます。
 
 * **キーワードの変更**: `manager.register("新しいキーワード")` のようにして、検知したいキーワードを追加・変更できます。
-* **AIモデルの変更**: `detector = KeywordDetector(model_size="...")` の部分で、Whisperのモデルサイズ (`"tiny"`, `"small"`, `"medium"`, `"large"`) を変更できます。モデルが大きいほど精度が上がりますが、処理が重くなります。
+* **AIモデルの変更**: `detector = KeywordDetector(model_size="...")` の部分で、Whisperのモデルサイズ (`"tiny"`, `"small"`, `"medium"`, `"large"`) を変更できます。モデルが大きいほど精度が上がりますが、処理が重くなります。（例：mediumモデルで約1.4GB、制度とサイズの兼ね合いからこれがいい気もする）
 * **検知単位の変更**: `CHUNK_SECONDS` の値を変更することで、一度に処理する音声の長さを調整できます。（例：CHUNK_SECONDS=5なら5秒間という意味）
 
 ## コード解説  
@@ -69,4 +72,4 @@
         * result = self.model.transcrobe(audio_data, language="ja")：whisperの最も重要なモデル。音声データ（audio_data）を受け取り、文字に起こす。
         * recognized_text = result["text"]：transcribeが返した辞書データからtextキーを指定して、文字お越しされた文字列本体を取り出している。
         * normalized_text = self.converter.do(recognized_text)：認識された文字列をすべて平仮名に変換する（ここ正味もしかしたらwhisperのみでできるのではないだろうかと思っている）
-        
+
