@@ -1,79 +1,96 @@
 import pyaudio
 import numpy as np
-# import matplotlib.pyplot as plt
-# import time
-from Detection import KeywordDetector
+
+# 最大サイズを指定でき、要素が最大数を超えると自動的に古いものから削除される効率的なデータ構造
+# 合言葉検知用に過去5秒間のデータを保持
+from collections import deque
+
+from KeywordDetection import KeywordDetector
+from ScreamDetention import ScreamDetector
 from KeywordManagement import Keyword_Manager
 
-if __name__ == "__main__":
-    # 最初に一度だけモデルをロードする
-    detector = KeywordDetector(model_size="medium")
-    manager = Keyword_Manager()
-    # テスト用の合言葉を登録
-    manager.register("こんにちはといえばよる")
-    manager.register("りんごをたべたいきぶん") # 複数登録も可能
+if __name__ ==  "__main__":
+    # モード設定（on/off）
+    """合言葉検知のみモードを推奨"""
+    KEYWORD_DETECTION_MODE = True
+    SCREAM_DETECTION_MODE = True 
 
-    # --- 音声ストリームの基本的なパラメータ ---
-    CHUNK_SECONDS = 5  # 区切る秒数 ★2秒に設定
-    RATE = 16000  # サンプリングレート、whisperモデルが対応している16kHzに
-    CHANNELS = 1  # モノラル
-    FORMAT = pyaudio.paInt16  # 整数形式の方が扱いやすい
-    CHUNK_SIZE = int(RATE * CHUNK_SECONDS)  # 2秒分のフレーム数を計算
 
-    # PyAudioのインスタンスを作成
+    # 各システムの初期化
+    if KEYWORD_DETECTION_MODE == True:
+        keyword_detector = KeywordDetector(model_size="medium")
+        keyword_manager = Keyword_Manager()
+        keyword_manager.register("こんにちはといえばよる")
+        keyword_manager.register("りんごをたべたいきぶん")
+
+    if SCREAM_DETECTION_MODE == True:
+        scream_detector = ScreamDetector()
+
+    print("初期化完了")
+
+    # リアルタイム音声処理の事前情報の定義
+    SCREAM_CHUNK_SECONDS = 3
+    KEYWORD_CHUNK_SECONDS = 5
+    RATE = 16000
+    CHANNELS = 1
+    FORMAT = pyaudio.paInt16
+    SCREAM_CHUNK_SIZE = int(RATE * SCREAM_CHUNK_SECONDS)
+    # 合言葉検知用に過去五秒間の音声データを保持するためのバッファ（一時的なデータ置き場）作成
+    audio_buffer = deque(maxlen=int(RATE * KEYWORD_CHUNK_SECONDS))
+
     p = pyaudio.PyAudio()
+    # マイク入力から音声データを流すストリームの作成
+    stream = p.open(
+        format=FORMAT,
+        channels=CHANNELS,
+        rate=RATE,
+        input=True,
+        frames_per_buffer=SCREAM_CHUNK_SIZE
+    )
 
-    # 音声ストリームを開く
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    frames_per_buffer=CHUNK_SIZE)
+    print("リアルタイム検知を開始します。Ctrl+Cで終了します。")
+    print(f"合言葉検知：{'ON' if KEYWORD_DETECTION_MODE else 'OFF'}\n悲鳴検知：{'ON' if SCREAM_DETECTION_MODE else 'OFF'}")
 
-    """リアルタイム波形描画はシステムにおいては必要ないためコメントアウト"""
-    # # --- 可視化の準備 ---
-    # plt.ion()  # Matplotlibをインタラクティブモードに設定
-    # fig, ax = plt.subplots()
-
-    # # 横軸（時間）のデータを作成
-    # time_axis = np.linspace(0, CHUNK_SECONDS, CHUNK_SIZE)
-    # ax.set_xlabel("Time (s)")
-    # ax.set_ylabel("Amplitude")
-    # ax.set_ylim(-32768, 32767) # int16の範囲
-    # line, = ax.plot(time_axis, np.zeros(CHUNK_SIZE))
-
-    print(f"{CHUNK_SECONDS}秒ごとの音声入力を開始します。ウィンドウを閉じるかCtrl+Cで終了します。")
-
+    # メインループ
     try:
+        loop_count = 0
         while True:
-            # 2秒分のデータをストリームから読み込む（処理が終わるまで待機）
-            data_bytes = stream.read(CHUNK_SIZE)
-            
-            # 読み込んだバイトデータをNumpy配列に変換
+            data_bytes = stream.read(SCREAM_CHUNK_SIZE) # 3s分の音声データ（バイトデータ）
             chunk_data_int16 = np.frombuffer(data_bytes, dtype=np.int16)
-            
-            # 1. Whisperのために、int16からfloat32にデータを変換
+
             audio_float32 = chunk_data_int16.astype(np.float32) / 32768.0
 
-            # 2. 変換したデータを検知システムに渡す
-            if detector.detect(audio_float32, manager):
-                print("\n★★★ 合言葉を検知しました！ ★★★\n")
-                break # 検知したらループを抜ける
-            else:
-                print("合言葉は検知されませんでした。")
+            audio_buffer.extend(audio_float32) # 3s分の新しいデータを5s間データを保持するdequeバッファに追加
 
-            """リアルタイム波形描画は以下略"""
-            # # グラフのデータを更新
-            # line.set_ydata(chunk_data_int16)
-            # fig.canvas.draw()
-            # fig.canvas.flush_events()
+            print(f"ループ{loop_count+1}（音声取得：{SCREAM_CHUNK_SECONDS}秒）")
+
+            # 悲鳴検知(毎3秒実行)
+            if SCREAM_DETECTION_MODE:
+                is_scream, score = scream_detector.detect(audio_float32, RATE)
+                if is_scream:
+                    print(f"悲鳴を検知しました（信頼度{score:.2f}）")
+                else:
+                    print("悲鳴は検知されませんでした")
             
-    except (KeyboardInterrupt, SystemExit):
-        print("プログラムを終了します。")
+            # 合言葉検知(毎5秒実行)
+            if KEYWORD_DETECTION_MODE and len(audio_buffer) == audio_buffer.maxlen:
+                keyword_audio_data = np.array(audio_buffer)
 
+                if keyword_detector.detect(keyword_audio_data, keyword_manager):
+                    print("合言葉を検知しました")
+                else:
+                    print("合言葉は検知されませんでした")
+                
+            loop_count += 1
+
+    except (KeyboardInterrupt, SystemExit):
+        print("\nプログラムを終了する")
+    
     finally:
-        # ストリームを閉じる
         stream.stop_stream()
         stream.close()
         p.terminate()
-        print("ストリームをクリーンアップしました。")
+        print("ストリームをクリーンアップしました")
+
+
+
