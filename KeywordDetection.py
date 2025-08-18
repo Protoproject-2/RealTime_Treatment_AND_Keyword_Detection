@@ -54,7 +54,7 @@ class KeywordDetector:
             # 合言葉登録リストから今回検出した合言葉を照合
             if keyword in normalized_text:
                 print(f"成功：合言葉「{keyword}」が見つかりました！")
-                return True
+                return True, recognized_text, keyword
 
         print("失敗：登録された合言葉は見つかりませんでした。")
-        return False
+        return False, recognized_text, None
