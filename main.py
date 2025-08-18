@@ -11,7 +11,9 @@ from KeywordManagement import Keyword_Manager
 
 if __name__ ==  "__main__":
     # モード設定（on/off）
-    """合言葉検知のみモードを推奨"""
+    """合言葉検知のみモードを推奨, REST APIの仕様ではこのmain.py自体がバックエンド側に移行されるから
+    このon/off機能は考慮せず消してしまっても構わないと思われる
+    いずれそれぞれの機能のon/offボタンを作りたいが、データベースが必要となり工期が間に合わないのが現状(8/19時点)"""
     KEYWORD_DETECTION_MODE = True
     SCREAM_DETECTION_MODE = True 
 
