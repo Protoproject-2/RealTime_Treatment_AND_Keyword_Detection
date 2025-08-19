@@ -2,11 +2,16 @@ import tensorflow_hub as hub
 import numpy as np
 import csv
 import tensorflow as tf
-
+import os
 class ScreamDetector:
     """YAMNetモデルを保持し、悲鳴検知を実行するクラス"""
     def __init__(self):
         print("ScreamDetectorを初期化中")
+
+        # キャッシュディレクトリを指定
+        cache_dir = ".cache/tfhub"
+        os.environ["TFHUB_CACHE_DIR"] = cache_dir
+        print(f"YAMNetのキャッシュディレクトリを設定した：{os.path.abspath(cache_dir)}")
 
         # YAMNetモデルのロード
         print("YAMNetモデルをロードしている")

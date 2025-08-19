@@ -87,14 +87,16 @@ def add_keyword():
             return jsonify({"status": "error", "message": "Request must be JSON with a 'keyword' field."}), 400
 
         keyword = data['keyword']
-        success = keyword_manager.register(keyword)
+        success, message = keyword_manager.register(keyword)
 
         if success:
-            return jsonify({"status": "success", "message": f"合言葉「{keyword}」を登録しました。"})
+            return jsonify({"status": "success", "message": message})
         else:
-            # 登録失敗の理由はKeyword_Manager側でprintされる
-            return jsonify({"status": "error", "message": f"合言葉「{keyword}」の登録に失敗しました。すでに登録済みか、無効なキーワードです。"}), 409
-
+            # 登録失敗時のエラーハンドリングを改善
+            if "すでに登録済み" in message:
+                return jsonify({"status": "error", "message": message}), 409 # Conflict
+            else:
+                return jsonify({"status": "error", "message": message}), 400 # Bad Request
     except Exception as e:
         print(f"Error in POST /keywords: {e}")
         return jsonify({"error": "An error occurred while adding the keyword."}), 500
