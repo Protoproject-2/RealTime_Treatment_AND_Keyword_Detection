@@ -2,16 +2,21 @@ from pykakasi import kakasi
 import whisper
 from KeywordManagement import Keyword_Manager
 import numpy as np
+import os
 
 class KeywordDetector:
     """音声認識モデルと各種ツールを保持し、キーワード検知を実行するクラス"""
     def __init__(self, model_size="small"):
         # 初期化時にモデルや変換器のロードを一度だけ行う
         print("KeywordDetectorを初期化中...")
-        
-        # Whisperモデルのロード
+
+        # キャッシュディレクトリを指定
+        cache_dir = ".cache/whisper"
+        print(f"whisperのキャッシュディレクトリを設定した：{os.path.abspath(cache_dir)}")
+
+        # Whisperモデルのロード時にキャッシュの場所(download_root)を指定
         print(f"Whisperモデル({model_size})をロードしています...")
-        self.model = whisper.load_model(model_size)
+        self.model = whisper.load_model(model_size, download_root=cache_dir)
         
         # Kakasi（ひらがな変換器）の準備
         print("ひらがな変換器を準備しています...")
@@ -54,7 +59,7 @@ class KeywordDetector:
             # 合言葉登録リストから今回検出した合言葉を照合
             if keyword in normalized_text:
                 print(f"成功：合言葉「{keyword}」が見つかりました！")
-                return True
+                return True, recognized_text, keyword
 
         print("失敗：登録された合言葉は見つかりませんでした。")
-        return False
+        return False, recognized_text, None

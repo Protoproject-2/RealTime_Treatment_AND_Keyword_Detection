@@ -1,26 +1,27 @@
+from flask import request, jsonify
+
 class Keyword_Manager:
     def __init__(self):
         # 合言葉保存用リスト初期化
         self.keyword_list = []
 
 
-    def register(self, keyword:str) -> bool:
-        #ここで合言葉を登録するメソッドを定義
-        """ボタンを押したときにこのメソッドが呼ばれるようにしたいね"""
-        
+    def register(self, keyword: str) -> tuple[bool, str]:
+        # キーワードを登録する
         if not keyword:
             # 空文字は登録できないようにする処理
             print("登録エラー：空文字は登録できません。")
-            return False
+            return False, "無効なキーワードです。"
+        
         if keyword in self.keyword_list:
             # 二重登録できないようにするための処理
             print(f"登録エラー：「{keyword}」はすでに登録済みです。")
-            return False
+            return False, f"合言葉「{keyword}」はすでに登録済みです。"
         
         # 登録処理
         self.keyword_list.append(keyword)
         print(f"成功：合言葉「{keyword}」を登録できました。")
-        return True
+        return True, f"合言葉「{keyword}」を登録しました。"
     
     def delete(self, keyword:str) -> bool:
         # ここで合言葉を削除するメソッドを定義
@@ -33,6 +34,7 @@ class Keyword_Manager:
             return True
         else:
             print(f"削除エラー：該当する「{keyword}」が見つかりません。")
+            return False # 失敗時にFalseを返すように修正
 
     def change(self, old_keyword:str, new_keyword:str) -> bool:
         # ここで登録した合言葉を変更するメソッドを定義
