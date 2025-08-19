@@ -6,28 +6,22 @@ class Keyword_Manager:
         self.keyword_list = []
 
 
-    def register(self):
-        # Webリクエストから直接キーワードを登録する
-        data = request.get_json()
-        if not data or 'keyword' not in data:
-            return jsonify({"status": "error", "message": "Request must be JSON with a 'keyword' field."}), 400
-
-        keyword = data['keyword']
-        
+    def register(self, keyword: str) -> tuple[bool, str]:
+        # キーワードを登録する
         if not keyword:
             # 空文字は登録できないようにする処理
             print("登録エラー：空文字は登録できません。")
-            return jsonify({"status": "error", "message": "無効なキーワードです。"}), 400 # 400 Bad Requestがより適切
+            return False, "無効なキーワードです。"
         
         if keyword in self.keyword_list:
             # 二重登録できないようにするための処理
             print(f"登録エラー：「{keyword}」はすでに登録済みです。")
-            return jsonify({"status": "error", "message": f"合言葉「{keyword}」はすでに登録済みです。"}), 409 # 409 Conflictが適切
+            return False, f"合言葉「{keyword}」はすでに登録済みです。"
         
         # 登録処理
         self.keyword_list.append(keyword)
         print(f"成功：合言葉「{keyword}」を登録できました。")
-        return jsonify({"status": "success", "message": f"合言葉「{keyword}」を登録しました。"})
+        return True, f"合言葉「{keyword}」を登録しました。"
     
     def delete(self, keyword:str) -> bool:
         # ここで合言葉を削除するメソッドを定義

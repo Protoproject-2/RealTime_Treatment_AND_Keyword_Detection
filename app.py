@@ -82,7 +82,21 @@ def get_keywords():
 def add_keyword():
     """合言葉登録エンドポイント"""
     try:
-        return keyword_manager.register()
+        data = request.get_json()
+        if not data or 'keyword' not in data:
+            return jsonify({"status": "error", "message": "Request must be JSON with a 'keyword' field."}), 400
+
+        keyword = data['keyword']
+        success, message = keyword_manager.register(keyword)
+
+        if success:
+            return jsonify({"status": "success", "message": message})
+        else:
+            # 登録失敗時のエラーハンドリングを改善
+            if "すでに登録済み" in message:
+                return jsonify({"status": "error", "message": message}), 409 # Conflict
+            else:
+                return jsonify({"status": "error", "message": message}), 400 # Bad Request
     except Exception as e:
         print(f"Error in POST /keywords: {e}")
         return jsonify({"error": "An error occurred while adding the keyword."}), 500
