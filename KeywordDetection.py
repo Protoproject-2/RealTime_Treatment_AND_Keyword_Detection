@@ -33,7 +33,7 @@ class KeywordDetector:
         try:
             # モデル、音声ファイルをロード、認識
             print("メモリ上の音声データを文字起こし中...")
-            result = self.model.transcribe(audio_data, language="ja")
+            result = self.model.transcribe(audio_data, language="ja", condition_on_previous_text=False)
             recognized_text = result["text"]
             print(f"-> 認識結果: 「{recognized_text}」")
         except Exception as e:
